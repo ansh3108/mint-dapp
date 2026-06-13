@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+body {
+  @apply bg-slate-900 text-slate-100 min-h-screen;
+  background-image: radial-gradient(circle at 50% -20%, #1e293b, #0f172a);
+}
