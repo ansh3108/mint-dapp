@@ -7,6 +7,7 @@ import { walletAdapterIdentity } from '@metaplex-foundation/umi-signer-wallet-ad
 import { irysUploader } from '@metaplex-foundation/umi-uploader-irys';
 import { createNft, mplTokenMetadata } from '@metaplex-foundation/mpl-token-metadata';
 import { generateSigner, percentAmount, createGenericFileFromBrowserFile } from '@metaplex-foundation/umi';
+import { base58 } from '@metaplex-foundation/umi/serializers';
 
 export default function App() {
   const { connection } = useConnection();
@@ -16,6 +17,8 @@ export default function App() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isMinting, setIsMinting] = useState(false);
+  
+  const [txSignature, setTxSignature] = useState<string | null>(null);
 
   const handleMint = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +29,7 @@ export default function App() {
     }
     
     setIsMinting(true);
+    setTxSignature(null); 
 
     try {
       const umi = createUmi(connection.rpcEndpoint)
@@ -34,9 +38,7 @@ export default function App() {
         .use(irysUploader()); 
 
       console.log('Uploading image to Arweave via Irys...');
-      
       const genericFile = await createGenericFileFromBrowserFile(file);
-      
       const [imageUri] = await umi.uploader.upload([genericFile]);
 
       console.log('Uploading metadata...');
@@ -56,8 +58,10 @@ export default function App() {
         sellerFeeBasisPoints: percentAmount(0), 
       }).sendAndConfirm(umi);
 
-      alert(`Mint successful! Check console for signature.`);
-      console.log('Transaction Signature:', signature);
+      const signatureString = base58.deserialize(signature)[0];
+
+      setTxSignature(signatureString);
+      console.log('Transaction Signature:', signatureString);
 
     } catch (error) {
       console.error('Minting failed:', error);
@@ -116,6 +120,27 @@ export default function App() {
           >
             {isMinting ? 'Processing Transaction...' : 'Sign & Mint'}
           </button>
+
+          {txSignature && (
+            <div className="mt-6 p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl backdrop-blur-sm animate-fade-in">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                <p className="text-emerald-400 text-sm font-medium">Mint Successful!</p>
+              </div>
+              <a 
+                href={`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center justify-center gap-2 w-full bg-white/5 hover:bg-white/10 text-slate-200 py-2.5 rounded-lg transition-all text-sm font-medium border border-white/5 hover:border-white/10"
+              >
+                View on Explorer 
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+              </a>
+            </div>
+          )}
+
         </div>
       </form>
     </div>
