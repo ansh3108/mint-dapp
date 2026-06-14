@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, type DragEvent, type ChangeEvent } from 'react';
 import { 
   Upload, Loader2, ExternalLink, CheckCircle2, Sparkles, 
-  ChevronRight, ChevronLeft, Image as ImageIcon 
+  ChevronRight, ChevronLeft 
 } from 'lucide-react';
 
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
